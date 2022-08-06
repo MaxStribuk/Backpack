@@ -1,20 +1,17 @@
 package com.home.backpack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Задача о рюкзаке.
- *
+ * <p>
  * Входные данные:
  * первое число - количество предметов numberItems;
  * второе число - вместимость рюкзака weight;
  * далее следуют numberItems пар чисел -
  * вес предметов и их стоимость - weights[1], cost[1] ... weights[numberItems], cost[numberItems];
  * все входные параметры являются целыми числами.
- *
+ * <p>
  * Выходные данные:
  * максимальная стоимость предметов, которые можно унести в рюкзаке, и
  * номера предметов, помещенных в рюкзак.
@@ -24,41 +21,56 @@ public class Main {
 
     static int itemsCount;
     static int weight;
-    static int[] weights;
-    static int[] cost;
+    static Item[] items;
     static int[][] dinamicTable;
-    static final String MAX_COST = "Максимальная стоимость предметов, которые можно поместить в рюкзак - ";
-    static final String NUMBER_ITEMS = "В рюкзак нужно поместить предметы с номерами: ";
-
 
     public static void main(String[] args) {
         init();
         int maxWeight = searchMaxWeigth();
-        List <Integer> numberItems = restoringResponse(maxWeight, itemsCount, weight);
+        List<Integer> numberItems = restoringResponse(maxWeight, itemsCount, weight);
         printAnswer(maxWeight, numberItems);
     }
 
     private static void init() {
-        Scanner in = new Scanner(System.in);
-        itemsCount = in.nextInt();
-        weight = in.nextInt();
-        weights = new int[itemsCount];
-        cost = new int[itemsCount];
+        System.out.println(Constants.ITEMS_COUNT);
+        itemsCount = handlingExceptionIncorrectInput();
+        System.out.println(Constants.BACKPACK_CAPACITY);
+        weight = handlingExceptionIncorrectInput();
+        items = new Item[itemsCount];
         for (int i = 0; i < itemsCount; i++) {
-            weights[i] = in.nextInt();
-            cost[i] = in.nextInt();
+            Item item = new Item();
+            System.out.println(Constants.ITEM_WEIGHT + Item.getCount());
+            item.setWeight(handlingExceptionIncorrectInput());
+            System.out.println(Constants.ITEM_COST + Item.getCount());
+            item.setCost(handlingExceptionIncorrectInput());
+            items[i] = item;
         }
-        in.close();
         dinamicTable = new int[itemsCount + 1][weight + 1];
+    }
+
+    private static int handlingExceptionIncorrectInput() {
+        Scanner in = new Scanner(System.in);
+        int inputNumber = -1;
+        try {
+            inputNumber = in.nextInt();
+            if (inputNumber < 0) {
+                throw new NoSuchElementException();
+            }
+        } catch (NoSuchElementException e) {
+            System.out.println(Constants.INCORRECT_INPUT);
+            inputNumber = handlingExceptionIncorrectInput();
+        }
+        return inputNumber;
     }
 
     private static int searchMaxWeigth() {
         for (int i = 1; i <= itemsCount; i++) {
             for (int j = 1; j <= weight; j++) {
-                if (weights[i - 1] <= j ) {
-                    int firstValue = dinamicTable[i - 1][j];
-                    int secondValue = cost[i - 1] + dinamicTable[i - 1][j - weights[i - 1]];
-                    dinamicTable[i][j] = Math.max(firstValue, secondValue);
+                if (items[i - 1].getWeight() <= j) {
+                    int costWithoutCurrentItem = dinamicTable[i - 1][j];
+                    int costWithCurrentItem = items[i - 1].getCost()
+                            + dinamicTable[i - 1][j - items[i - 1].getWeight()];
+                    dinamicTable[i][j] = Math.max(costWithoutCurrentItem, costWithCurrentItem);
                 }
             }
         }
@@ -70,8 +82,8 @@ public class Main {
         while (maxWeight != 0) {
             if (maxWeight != dinamicTable[numberItem - 1][weight]) {
                 numberItems.add(numberItem);
-                maxWeight -= cost[numberItem - 1];
-                weight -= weights[numberItem - 1];
+                maxWeight -= items[numberItem - 1].getCost();
+                weight -= items[numberItem - 1].getWeight();
             }
             numberItem--;
         }
@@ -79,11 +91,15 @@ public class Main {
     }
 
     private static void printAnswer(int maxWeight, List<Integer> numberItems) {
-        System.out.println(MAX_COST + maxWeight);
+        System.out.println(Constants.MAX_COST + maxWeight);
         Collections.sort(numberItems);
-        System.out.println(NUMBER_ITEMS);
-        for (int index: numberItems) {
-            System.out.print(index + "   ");
+        if (numberItems.size() > 0) {
+            System.out.println(Constants.NUMBER_ITEMS);
+            for (int index : numberItems) {
+                System.out.print(index + "   ");
+            }
+        } else {
+            System.out.println(Constants.NUMBER_ITEMS_ZERO);
         }
     }
 
