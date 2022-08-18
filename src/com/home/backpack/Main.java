@@ -71,6 +71,8 @@ public class Main {
                     int costWithCurrentItem = items[i - 1].getCost()
                             + dinamicTable[i - 1][j - items[i - 1].getWeight()];
                     dinamicTable[i][j] = Math.max(costWithoutCurrentItem, costWithCurrentItem);
+                } else {
+                    dinamicTable[i][j] = dinamicTable[i - 1][j];
                 }
             }
         }
